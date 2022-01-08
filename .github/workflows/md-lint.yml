@@ -1,0 +1,41 @@
+name: Markdown Lint
+
+on:
+  push:
+  pull_request:
+    paths:
+      - '**.md'
+
+env:
+  IsPR: "no"
+
+jobs:
+  markdown-link-check:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Action
+      uses: actions/checkout@master
+      with:
+        fetch-depth: 0
+    - name: Check if PR
+      run: |
+        echo "IsPR='yes'" >> $GITHUB_ENV
+      if: github.event_name == 'pull_request'
+    - name: Markdown Check Action
+      uses: gaurav-nelson/github-action-markdown-link-check@master
+      with:
+        check-modified-files-only: ${{ env.IsPR }}
+
+  markdown-formatting:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Action
+      uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+    - run: pip install mdformat-gfm
+    - name: Format Markdown
+      run: mdformat .
+    - name: Ensure Formatted Correctly
+      run: git diff --exit-code
